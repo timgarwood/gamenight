@@ -1,3 +1,4 @@
+console.log("1");
 var express = require('express');
 var sqlite = require('sqlite3');
 var app = express();
@@ -17,10 +18,10 @@ app.post('/edituser', function(req, resp) {
 
 });
 
-app.get('/getuser', function(req, resp)) {
-}
+app.get('/getuser', function(req, resp) {
+});
 
-app.get('getusers', function(req, resp) {
+app.get('/getusers', function(req, resp) {
 
 });
 

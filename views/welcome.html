@@ -4,9 +4,7 @@
 <body bgcolor="123456" text="FFFFFF">
 Welcome, <%= user.name %>! <br>
 <% if(user.admin != 0) { %>
-  <a text="FFFFFF" href="adduser.html">Add a User</a><br>
-  <a text="FFFFFF"href="removeuser.html">Remove a User</a><br>
-  <a text="FFFFFF" href="edituser.html">Edit a User</a><br>
+  <a onclick="usermanagement()" text="FFFFFF">User Management</a><br>
 <%}%>
 </body>
 </html>

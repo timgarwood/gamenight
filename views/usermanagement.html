@@ -1,0 +1,68 @@
+<html>
+<head>
+<title>
+User Management
+</title>
+<script type="text/javascript">
+  var users = null;
+  function onload() {
+  	var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+        	users = JSON.parse(xmlHttp.responseText); 
+        }
+    }
+    xmlHttp.open("GET", "/deletableusers", false);
+    xmlHttp.send(null);
+  }
+
+  function deleteUser() {
+  	var userList = document.getElementById("usersList");
+  	if(userList.selectedIndex >= 0) {
+  		var username = userList.options[userList.selectedIndex].text;
+  		var response = confirm("Really delete " username + "? This action is unreversible.");
+  	  if(response) {
+  		  prompt("you selected yes")
+  	  } else {
+  		  prompt("you selected no");
+  	  }
+  	}
+  }
+</script>
+</head>
+
+<body onload="onload()"bgcolor="123456">
+
+<%if(user && user.admin) {%>
+  <div align="left" id="addUserDiv">
+    <h3>
+     <text color="FFFFFF">Add User</text>
+    </h3>
+    <form method="post" action="adduser">
+      <input type="text" name="name" placeholder="Username"/><br>
+      <input type="password" name="password1" placeholder="Password"/><br>
+      <input type="password" name="password2" placeholder="Re-enter password"><br>
+      <input type="text" name="email" placeholder="Email address"/>
+      Administrator?<input type="checkbox" name="admin"/><br>
+    <input type="submit" name="submit" value="Add User"/>
+    </form>
+  </div>
+
+  <div align="center" id="addUserDiv">
+    <h3>
+      <text color="FFFFFF">Delete User</text>
+    </h3>
+    <form method="post" action="deleteuser">
+      <select id="usersList">
+        <% if(users) {%>
+          <%for(var i = 0; i < users.length; ++i) {%>
+            <option value="<%=users[i].name%>"><%=users[i].name%></option>
+          <%}%>
+        <%}%>
+      </select>
+      <input type="submit" value="Delete" onclick="deleteUser()">
+    </form>
+  </div>
+<%}%>
+</body>
+</html>

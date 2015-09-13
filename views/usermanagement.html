@@ -31,8 +31,10 @@ User Management
 </script>
 </head>
 
-<body onload="onload()"bgcolor="123456">
-
+<body bgcolor="123456">
+<% if(error) { %>
+  <font color="yellow"><%= error %></font>
+<% } %> 
 <%if(user && user.admin) {%>
   <div align="left" id="addUserDiv">
     <h3>
@@ -56,7 +58,7 @@ User Management
       <select id="usersList">
         <% if(users) {%>
           <%for(var i = 0; i < users.length; ++i) {%>
-            <option value="<%=users[i].name%>"><%=users[i].name%></option>
+            <option value=<%=users[i].name%>><%=users[i].name%></option>
           <%}%>
         <%}%>
       </select>

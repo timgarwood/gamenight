@@ -3,12 +3,15 @@
 </head>
 <body bgcolor="#123456" text="#FFFFFF">
   <center>
-    Game Night hello?
-    <div id="add_user_form">
+    Game Night<br>
+    <% if(error) { %>
+      <font color="yellow"><%if(error) %></font>
+    <%}%>
+    <div id="loginDiv">
     <form method="post" action="/login">
       <input type="text" id="user" name="user" placeholder="..."/>
       <br>
-      <input type="text" id="password" name="password" placeholder="..."/>
+      <input type="text" id="password" name="password" placeholder="..."/><br>
       <button type="submit">Login</button>
     </form>
     </div>

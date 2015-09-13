@@ -3,8 +3,11 @@
 </head>
 <body bgcolor="123456" text="FFFFFF">
 Welcome, <%= user.name %>! <br>
+<%if(error) {%>
+  <font color="yellow"><%= error %></font>
+<%}%> 
 <% if(user.admin != 0) { %>
-  <a onclick="usermanagement()" text="FFFFFF">User Management</a><br>
+  <a href="usermanagement.html" text="FFFFFF">User Management</a><br>
 <%}%>
 </body>
 </html>

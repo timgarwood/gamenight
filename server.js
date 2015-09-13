@@ -1,5 +1,6 @@
 var express = require('express');
 var sqlite = require('sqlite3');
+var session = require('client-sessions');
 var bodyParser = require('body-parser');
 var app = express();
 app.engine('.html', require('ejs').renderFile);
@@ -82,11 +83,18 @@ var db_getDeletableUsers = function(cb) {
 //serve client side web pages statically
 app.use(express.static('./static'));
 app.use(bodyParser.urlencoded());
+app.use(session({
+	cookieName: 'session',
+	secret: 'game-night-session-secret',
+	duration: 30 * 60 * 1000,
+	activeDuration: 5 * 60 * 1000,
+}));
 
 app.post('/login', function(req, resp) {
 	if(!req.body.user || !req.body.password) {
-  		console.log("login: missing username or password");
-  	 	resp.status(400).json({error : 'login: missing username or password'});
+		  var err = "login: missing username or password";
+  		console.log(err);
+  		resp.render('index.html', {error:err});
   		return;
   	}
 
@@ -94,89 +102,107 @@ app.post('/login', function(req, resp) {
   		if(!user) {
   			var err = "login: user " + req.body.user + " does not exist";
   			console.log(err);
-  			resp.status(400).json({error:err});
+    		resp.render('index.html', {error:err});
   			return;
   		}
 
   		if(user.password != req.body.password) {
   			var err = "login: user " + req.body.user + " password mismatch";
   			console.log(err);
-  			resp.status(400).json({error:err});
+    		resp.render('index.html', {error:err});
   			return;
   		}
-  		console.log("rendering welcome.html with " + JSON.stringify(user));
-        resp.render("welcome.html", {user : user});
-  	});
 
+      //store the session information
+      //and remove unnecessary info
+  		req.session.user = user;
+  		delete req.session.user.password;
+  		delete req.session.user.email;
+
+  		console.log("rendering welcome.html with " + JSON.stringify(user));
+      resp.render("welcome.html", {user : user});
+  	});
 });
 
 //adds a user to the database
 //if it does not already exist.
 app.post('/adduser', function(req, resp) {
-	console.log("add user requested");
-	if(!req.body.name || !req.body.password1 || !req.body.password2 || !req.body.email)
-	{
-		console.log("request body missing user information");
-		resp.status(400).json({error: 'missing user information'});
-		return;
-	}
-
-	var admin = 0;
-	if(req.body.admin != 0) {
-		admin = 1;
-	}
-
-	db_getUser(req.body.name, function(returnedUser) {
-		if(returnedUser) {
-			console.log("user already exists");
-		    resp.status(400).json({error: 'user already exists'});
-		    return;
-		}
-
-		if(req.body.password1 != req.body.password2) {
-			console.log("adduser: passwords don't match");
-			resp.status(400).json({error: 'passwords do not match'});
+	if(req.session && req.session.user) {
+		console.log("add user requested");
+		if(!req.body.name || !req.body.password1 || !req.body.password2 || !req.body.email)
+		{
+			var err = "missing user information";
+			console.log(err);
+    	resp.render('usermanagement.html', {error:err});
 			return;
 		}
 
-		db_insertUser(req.body.name, req.body.password1,
-			req.body.email, admin, function(err) {
-			if(err) {
-			    resp.status(500).json({error: err});
+		var admin = 0;
+		if(req.body.admin != 0) {
+			admin = 1;
+		}
+
+		db_getUser(req.body.name, function(returnedUser) {
+			if(returnedUser) {
+				var err = "user " + returnedUser.name + " already exists";
+				console.log(err);
+				resp.render("usermanagement.html", {error:err});
+			  return;
+			}
+
+			if(req.body.password1 != req.body.password2) {
+				var err = "passwords do not match";
+				console.log(err);
+				resp.render("usermanagement.html", {error:err});
 				return;
 			}
 
-			resp.sendStatus(200);
+			db_insertUser(req.body.name, req.body.password1,
+				req.body.email, admin, function(err) {
+				var message = "user " + req.body.name + " added successfully!";
+				if(err) {
+					  message = err;
+				}
+
+        resp.render("usermanagement.html", {error:message});
+			});
 		});
-	});
+  } else {
+  	console.log("adduser: no session or session user detected");
+  	resp.redirect('/')
+  }
 });
 
 //deletes a user from the database if it exists
 app.post('/deleteuser', function(req, resp) {
-	console.log("delete user");
-	if(!req.body.name) {
-		resp.status(400).json({ error: "delete user no name provided"});
-		return;
-	}
-
-	db_getUser(req.body.name, function(returnedUser) {
-		if(!returnedUser) {
-			var err = req.body.name + " no such user";
-			resp.status(400).json({error : err});
+	if(req.session && req.session.user) {
+		console.log("delete user");
+		if(!req.body.name) {
+			var err = "must provide a user to delete";
+			resp.render("usermanagement.html", {error:err});
 			return;
 		}
 
-		db_deleteUser(req.body.name, function(error) {
-			if(error) {
-				var err = "error deleting user: " + error;
-				resp.status(400).json({error: err});
+		db_getUser(req.body.name, function(returnedUser) {
+			if(!returnedUser) {
+	  		var err = req.body.name + " does not exist.";
+			  resp.render("usermanagement.html", {error:err});
 				return;
 			}
 
-			console.log(req.body.name + " deleted successfully");
-			resp.status(200);
+			db_deleteUser(req.body.name, function(error) {
+				var message = req.body.name + " deleted successfully";
+				if(error) {
+					message = "error deleting user: " + error;
+				}
+				console.log(message);
+				resp.render("usermanagement.html", {error:message});
+			});
 		});
-	});
+  } else {
+  	console.log("deleteuser: no session");
+  	resp.redirect('/');
+  }
 });
 
 //replaces the existing data about the user
@@ -185,27 +211,37 @@ app.post('/edituser', function(req, resp) {
 
 });
 
-//returns the specified user
-app.get('/getuser', function(req, resp) {
-	console.log("getuser");
-	if(!req.body.name) {
-		resp.status(400).json({error : "getuser: no name provided"});
-		return;
-	}
-
-	db_getUser(req.body.name, function(returnedUser) {
-		//TODO: finish this
-	});
+//renders the index page.
+app.get('/', function(req, resp) {
+	resp.render('index.html', {});
 });
 
-//returns a list of users that can be deleted
-//the administrator cannot be deleted.
-//a ship must have a captain
-app.get('/getdeletableusers', function(req, resp) {
-	console.log("getdeletableusers");
-	db_getDeletableUsers(function(rows) {
-	  resp.status(200).json(rows);	
-	});
+//renders the welcome page.
+app.get('/welcome', function(req, resp) {
+	if(req.session && req.session.user) {
+    console.log("get: welcome");
+    resp.render('welcome.html');
+	} else {
+		console.log("get: no session");
+		req.redirect('/');
+	}
+});
+
+//renders the user management page.
+app.get('/usermanagement', function(req, resp) {
+  if(req.session && req.session.user) {
+  	if(req.session.user.admin) {
+  		db_getDeletableUsers(function(rows) {
+    		resp.render('usermanagement.html', {users: rows});
+  		});
+  	} else {
+  		console.log("get usermanagement user is not an admin");
+  		resp.redirect('/welcome');
+  	}
+  } else {
+  	console.log("get usermanagement: no session");
+  	resp.redirect('/');
+  }
 });
 
 app.listen(80);

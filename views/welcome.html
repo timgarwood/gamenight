@@ -2,12 +2,12 @@
 <head>
 </head>
 <body bgcolor="123456" text="FFFFFF">
-Welcome, <%= user.name %>! <br>
-<%if(error) {%>
+Welcome, <%= locals.user.name %>! <br>
+<%if(locals.error) {%>
   <font color="yellow"><%= error %></font>
 <%}%> 
-<% if(user.admin != 0) { %>
-  <a href="usermanagement.html" text="FFFFFF">User Management</a><br>
+<% if(locals.user && user.admin != 0) { %>
+  <a href="usermanagement" text="FFFFFF">User Management</a><br>
 <%}%>
 </body>
 </html>

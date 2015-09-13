@@ -5,6 +5,16 @@ var bodyParser = require('body-parser');
 var app = express();
 app.engine('.html', require('ejs').renderFile);
 
+//serve client side web pages statically
+app.use(express.static('./static'));
+app.use(bodyParser.urlencoded());
+app.use(session({
+	cookieName: 'session',
+	secret: 'game-night-session-secret',
+	duration: 30 * 60 * 1000,
+	activeDuration: 5 * 60 * 1000,
+}));
+
 var db = new sqlite.Database("gamenight.db", sqlite.OPEN_READWRITE);
 if(!db) {
 	console.log("could not create gamenight database");
@@ -16,12 +26,12 @@ if(!db) {
 var db_getUser = function(username, cb) {
 	db.serialize(function() {
 		db.all("SELECT * FROM users WHERE name=?", [username], function(err, rows) {
-			if(rows.length == 0) {
+			if(!rows || rows.length == 0) {
 				console.log("No user defined for " + username);
 				if(cb) {
 					cb(null);
 				}
-			} else if(rows.length > 1) {
+			} else if(rows && rows.length > 1) {
 				console.log("Multiple users with name " + username);
 				if(cb) {
 					cb(null);
@@ -74,21 +84,21 @@ var db_deleteUser = function(username, cb) {
 //(everything but the administrator)
 var db_getDeletableUsers = function(cb) {
 	db.serialize(function() {
-	  db.all("select * from users where name != administrator", function(rows) {
-	  	cb(rows);
-	  });
+		try {
+	    db.all("SELECT * FROM users", function(err, rows) {
+	    	if(err) {
+	    		console.log("db_getDeletableUsers error: " + err);
+	    		cb(null);
+	    		return;
+	    	}
+	  	  cb(rows);
+	    });
+	  } catch(e) {
+	  	console.log("db_getDeletableUsers exception: " + e);
+	  	cb(null);
+	  }
 	});
 }
-
-//serve client side web pages statically
-app.use(express.static('./static'));
-app.use(bodyParser.urlencoded());
-app.use(session({
-	cookieName: 'session',
-	secret: 'game-night-session-secret',
-	duration: 30 * 60 * 1000,
-	activeDuration: 5 * 60 * 1000,
-}));
 
 app.post('/login', function(req, resp) {
 	if(!req.body.user || !req.body.password) {
@@ -176,7 +186,8 @@ app.post('/adduser', function(req, resp) {
 //deletes a user from the database if it exists
 app.post('/deleteuser', function(req, resp) {
 	if(req.session && req.session.user) {
-		console.log("delete user");
+		console.log("delete user - " + JSON.stringify(req.body));
+		console.log("delete user - " + req.body.name);
 		if(!req.body.name) {
 			var err = "must provide a user to delete";
 			resp.render("usermanagement.html", {error:err});
@@ -220,7 +231,7 @@ app.get('/', function(req, resp) {
 app.get('/welcome', function(req, resp) {
 	if(req.session && req.session.user) {
     console.log("get: welcome");
-    resp.render('welcome.html');
+    resp.render('welcome.html', {user:req.session.user});
 	} else {
 		console.log("get: no session");
 		req.redirect('/');

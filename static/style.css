@@ -1,0 +1,23 @@
+body {
+	background-color: FFFFFF;
+}
+
+#loginDiv {
+	top: 50%;
+	left: 50%;
+}
+
+input[type="text"] { 
+	border-radius: 25px;
+	height: 30px;
+	width: 200px;
+	outline-width: 0px;
+}
+
+input[type="password"] { 
+	border-radius: 25px;
+	height: 30px;
+	width: 200px;
+	outline-width: 0px;
+}
+

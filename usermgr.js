@@ -1,12 +1,12 @@
 var sqlite = require('sqlite3');
 
-function UserMgr(db) {
+var UserMgr = function(db) {
 	this.db = db;
 }
 
-UserMgr.prototype = {
+UserMgr.prototype = function() {
 	//inserts a user into the database
-	addUser : function(username, password, email, phone, admin, cb) {
+	var addUser = function(username, password, email, phone, admin, cb) {
 		try {
 			this.db.serialize(function() {
 				try {
@@ -22,7 +22,7 @@ UserMgr.prototype = {
 			cb({error:"exception occurred " + e});
 		}
 	},
-	deleteUser : function(username, cb) {
+	deleteUser = function(username, cb) {
 		if(!username) {
 			cb("null username");
 			return;
@@ -40,9 +40,10 @@ UserMgr.prototype = {
 	},
   //returns a user if it exists
   //null otherwise
-	getUser : function(username, cb) {
+	getUser = function(username, cb) {
+		var self = this;
 		this.db.serialize(function() {
-			this.db.all("SELECT * FROM users WHERE name=?", [username], function(err, rows) {
+			self.db.all("SELECT * FROM users WHERE name=?", [username], function(err, rows) {
 				if(!rows || rows.length == 0) {
 					console.log("No user defined for " + username);
 					if(cb) {
@@ -63,7 +64,7 @@ UserMgr.prototype = {
 	},
   //returns all users who can be deleted
   //(everything but the administrator)
-	getDeletableUsers : function(cb) {
+	getDeletableUsers = function(cb) {
 		this.db.serialize(function() {
 			try {
 				this.db.all("SELECT * FROM users", function(err, rows) {
@@ -79,5 +80,14 @@ UserMgr.prototype = {
 				cb(null);
 			}
 		});
-	}
-}
+	};
+
+	return {
+		addUser : addUser,
+		deleteUser : deleteUser,
+		getDeletableUsers : getDeletableUsers,
+		getUser : getUser
+	};
+}();
+
+exports.UserMgr = UserMgr;

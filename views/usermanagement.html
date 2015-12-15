@@ -31,7 +31,7 @@ User Management
 </script>
 </head>
 
-<body bgcolor="123456">
+<body>
 <% if(locals.error) { %>
   <font color="yellow"><%= locals.error %></font>
 <% } %> 
@@ -43,13 +43,14 @@ User Management
     <input type="text" name="name" placeholder="Username"/><br>
     <input type="password" name="password1" placeholder="Password"/><br>
     <input type="password" name="password2" placeholder="Re-enter password"><br>
-    <input type="text" name="email" placeholder="Email address"/>
+    <input type="text" name="email" placeholder="Email address"/><br>
+    Phone (optional xxx-xxx-xxxx): <input type="text" name="phone"/><br>
     Administrator?<input type="checkbox" name="admin"/><br>
     <input type="submit" name="submit" value="Add User"/>
   </form>
 </div>
 
-<div align="center" id="addUserDiv">
+<div align="center" id="deleteUserDiv">
   <h3>
     <text color="FFFFFF">Delete User</text>
   </h3>

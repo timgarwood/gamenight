@@ -1,16 +1,20 @@
 <html>
 <head>
+<link rel="stylesheet" type="text/css" href="style.css">
 </head>
-<body bgcolor="#123456" text="#FFFFFF">
-  <div id="loginDiv" valign="center" halign="center">
+<body>
+  <div id="loginDiv">
     <h1>Game Night</h1><br>
     <% if(locals.error) { %>
       <font color="yellow"><%= locals.error %></font>
     <%}%>
     <form method="post" action="/login">
-      <input type="text" id="user" name="user" placeholder="..."/>
+      Username: <input type="text" id="user" name="user" placeholder="..."/>
       <br>
-      <input type="password" id="password" name="password" placeholder="..."/><br>
+      <br>
+      Password: <input type="password" id="password" name="password" placeholder="..."/>
+      <br>
+      <br>
       <button type="submit">Login</button>
     </form>
   </div>

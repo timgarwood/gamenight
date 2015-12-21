@@ -1,0 +1,39 @@
+<html>
+<head>
+<title>
+Event Management
+</title>
+</head>
+
+<body>
+<% if(locals.error) { %>
+  <font color="yellow"><%= locals.error %></font>
+<% } %> 
+<div align="left" id="addEventDiv">
+  <h3>
+   <text color="FFFFFF">Create Event</text>
+  </h3>
+  <form method="post" action="event/add">
+    <input type="text" name="name" placeholder="event name"/><br>
+    <input type="date" name="date"/><br>
+    <input type="submit" name="submit" value="Create Event"/>
+  </form>
+</div>
+
+<div align="center" id="deleteEventDiv">
+  <h3>
+    <text color="FFFFFF">Delete Event</text>
+  </h3>
+  <form method="post" action="event/delete">
+    <select name="name" id="name">
+      <% if(locals.events) {%>
+        <%for(var i = 0; i < locals.events.length; ++i) {%>
+          <option value=<%=locals.events[i].name%>><%=locals.events[i].name%></option>
+        <%}%>
+      <%}%>
+    </select>
+    <input type="submit" value="Delete"> 
+  </form>
+</div>
+</body>
+</html>
